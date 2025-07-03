@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Search from "./search";
+import TableHeader from "./tableHeader";
+import TableBody from './tableBody';
 
-type Advocate = {
+export type Advocate = {
   id: number,
   firstName: string,
   lastName: string,
@@ -14,89 +17,40 @@ type Advocate = {
   createdAt: string,
 }
 
-export default function Home() {
-  const [advocates, setAdvocates] = useState<Array<Advocate>>([]);
-  const [filteredAdvocates, setFilteredAdvocates] = useState<Array<Advocate>>([]);
+type AdvocatesDataState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'error', error: Error }
+  | { status: 'success', advocates: Array<Advocate> }
 
-  // TODO: handle loading / error states
+export default function Home() {
+  const [advocatesData, setAdvocatesData] = useState<AdvocatesDataState>({ status: 'idle' })
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
   useEffect(() => {
+    setAdvocatesData({ status: 'loading'})
     console.log("fetching advocates...");
     fetch("/api/advocates").then((response) => {
       response.json().then((jsonResponse) => {
-        setAdvocates(jsonResponse.data);
-        setFilteredAdvocates(jsonResponse.data);
-      });
+        setAdvocatesData({ status: 'success', advocates: jsonResponse.data})
+      }).catch(error => {
+        setAdvocatesData({ status: 'error', error})
+      })
     });
   }, []);
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const searchTerm = e.target.value.toLowerCase();
-    const advocatesFiltered = advocates.filter((advocate: Advocate) => {
-      const specialtiesWithTerm = advocate.specialties.some((specialty) => specialty.toLowerCase().includes(searchTerm));
-      return (
-        advocate.firstName.toLowerCase().includes(searchTerm) ||
-        advocate.lastName.toLowerCase().includes(searchTerm) ||
-        advocate.city.toLowerCase().includes(searchTerm) ||
-        advocate.degree.toLowerCase().includes(searchTerm) ||
-        advocate.specialties.includes(searchTerm) ||
-        specialtiesWithTerm
-      );
-    });
-
-    setFilteredAdvocates(advocatesFiltered);
-  };
-
-  const onClick = () => {
-    setFilteredAdvocates(advocates);
-  };
-
   return (
     <main className="m-[24px]">
-      <h1 className="text-lg">Solace Advocates</h1>
-      <br />
-      <br />
-      <div>
-        <label htmlFor="search" className="p-2">Search</label>
-        <input className="border-2 border-solid mr-2" onChange={onChange} id="search" name="search" type="text" />
-        <button className="border-2 border-solid p-1" type="button" onClick={onClick}>Reset Search</button>
-      </div>
-      <br />
-      <br />
-      <table>
-        <thead>
-          <tr className="bg-black text-white border-2 border-solid text-left">
-            <th className="border-2 border-solid p-3">First Name</th>
-            <th className="border-2 border-solid p-3">Last Name</th>
-            <th className="border-2 border-solid p-3">City</th>
-            <th className="border-2 border-solid p-3">Degree</th>
-            <th className="border-2 border-solid p-3">Specialties</th>
-            <th className="border-2 border-solid p-3">Years of Experience</th>
-            <th className="border-2 border-solid p-3">Phone Number</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredAdvocates.map((advocate: Advocate) => {
-            return (
-              // TODO: use id from db for key
-              <tr className="border-2 border-solid p-3" key={advocate.phoneNumber}>
-                <td className="border-2 border-solid p-3">{advocate.firstName}</td>
-                <td className="border-2 border-solid p-3">{advocate.lastName}</td>
-                <td className="border-2 border-solid p-3">{advocate.city}</td>
-                <td className="border-2 border-solid p-3">{advocate.degree}</td>
-                <td className="border-2 border-solid p-3">
-                  <ul className="list-inside list-disc">
-                    {advocate.specialties.map((s) => (
-                      <li key={s}>{s}</li>
-                    ))}
-                  </ul>
-                </td>
-                <td className="border-2 border-solid p-3">{advocate.yearsOfExperience}</td>
-                <td className="border-2 border-solid p-3">{advocate.phoneNumber}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <h1 className="text-xl mb-10">Solace Advocates</h1>
+      <Search setSearchTerm={setSearchTerm} />
+      {advocatesData.status === 'loading' ? "Loading advocates..." : null}
+      {advocatesData.status === 'error' ? advocatesData.error.message : null}
+      {advocatesData.status === 'success' ?
+        <table>
+          <TableHeader />
+          <TableBody searchTerm={searchTerm} advocates={advocatesData.advocates} />
+        </table> : null
+      }
     </main>
   );
 }

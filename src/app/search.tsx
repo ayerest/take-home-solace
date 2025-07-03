@@ -2,8 +2,6 @@ import React from 'react';
 import { Advocate } from './page';
 
 interface SearchProps {
-  // advocates: Array<Advocate>
-  // setFilteredAdvocates: (advocatesFiltered: Array<Advocate>) => void
   setSearchTerm: (searchTerm: string) => void
 }
 
@@ -12,19 +10,6 @@ const Search = ({setSearchTerm}: SearchProps) => {
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const searchTerm = e.target.value.toLowerCase();
     setSearchTerm(searchTerm);
-    // const advocatesFiltered = advocates.filter((advocate: Advocate) => {
-    //   const specialtiesWithTerm = advocate.specialties.some((specialty) => specialty.toLowerCase().includes(searchTerm));
-    //   return (
-    //     advocate.firstName.toLowerCase().includes(searchTerm) ||
-    //     advocate.lastName.toLowerCase().includes(searchTerm) ||
-    //     advocate.city.toLowerCase().includes(searchTerm) ||
-    //     advocate.degree.toLowerCase().includes(searchTerm) ||
-    //     advocate.specialties.includes(searchTerm) ||
-    //     specialtiesWithTerm
-    //   );
-    // });
-
-    // setFilteredAdvocates(advocatesFiltered);
   };
 
   const onClick = () => {

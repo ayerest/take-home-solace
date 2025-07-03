@@ -28,15 +28,21 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState<string>('');
 
   useEffect(() => {
+    let didCancel = false;
     setAdvocatesData({ status: 'loading'})
     console.log("fetching advocates...");
-    fetch("/api/advocates").then((response) => {
-      response.json().then((jsonResponse) => {
-        setAdvocatesData({ status: 'success', advocates: jsonResponse.data})
-      }).catch(error => {
-        setAdvocatesData({ status: 'error', error})
-      })
-    });
+    if (!didCancel) {
+      fetch("/api/advocates").then((response) => {
+        response.json().then((jsonResponse) => {
+          setAdvocatesData({ status: 'success', advocates: jsonResponse.data})
+        }).catch(error => {
+          setAdvocatesData({ status: 'error', error})
+        })
+      });
+    }
+    return () => {
+      didCancel = true;
+    }
   }, []);
 
   return (
